@@ -10,6 +10,7 @@ using System.Web;
 using System.Web.Http;
 namespace WebApiFenosa.Controllers
 {
+	[RoutePrefix("api/Migration")]
     public class MigrationController : ApiController
     {
 
@@ -17,7 +18,7 @@ namespace WebApiFenosa.Controllers
         private static string pathCliente = ConfigurationManager.AppSettings["verificateFile"];
 
         [HttpGet]
-        [Route("api/Migration/GetLogin")]
+        [Route("GetLogin")]
         public IHttpActionResult GetLogin(string user, string password, string version, string imei, string token)
         {
             Login login = ServiciosDA.GetOne(user, password, version, imei, token);
@@ -30,7 +31,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/MigracionAll")]
+        [Route("MigracionAll")]
         public IHttpActionResult MigracionAll(int operarioId, string version)
         {
             try
@@ -44,7 +45,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/SincronizarObservadas")]
+        [Route("SincronizarObservadas")]
         public IHttpActionResult MigracionAll(int operarioId)
         {
             List<Suministro> suministro = MigrationDA.GetObservadas(operarioId);
@@ -52,7 +53,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/VerificarCorte")]
+        [Route("VerificarCorte")]
         public IHttpActionResult VerificarCorte(string suministro)
         {
             Mensaje mensaje = MigrationDA.VerificarCorte(suministro);
@@ -61,7 +62,7 @@ namespace WebApiFenosa.Controllers
 
 
         [HttpGet]
-        [Route("api/Migration/SincronizarCorteReconexion")]
+        [Route("SincronizarCorteReconexion")]
         public IHttpActionResult sincronizarCorteReconexion(int operarioId)
         {
             Sincronizar sync = MigrationDA.Sincronizar(operarioId);
@@ -73,7 +74,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/GetOperarioById")]
+        [Route("GetOperarioById")]
         public IHttpActionResult GetOperarioById(int operarioId)
         {
             Mensaje operarios = MigrationDA.GetOperarioById(operarioId);
@@ -81,7 +82,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/GetOperarios")]
+        [Route("GetOperarios")]
         public IHttpActionResult GetOperarios()
         {
             List<Operario> operarios = MigrationDA.GetOperarios();
@@ -89,7 +90,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/UpdateOperario")]
+        [Route("UpdateOperario")]
         public IHttpActionResult UpdateOperario(int operarioId, int lecturaManual)
         {
             Mensaje mensaje = MigrationDA.UpdateOperario(operarioId, lecturaManual);
@@ -98,7 +99,7 @@ namespace WebApiFenosa.Controllers
 
 
         [HttpPost]
-        [Route("api/Migration/SaveOperarioGps")]
+        [Route("SaveOperarioGps")]
         public IHttpActionResult SaveOperarioGps(EstadoOperario estadoOperario)
         {
             Mensaje mensaje = ServiciosDA.SaveOperarioGps(estadoOperario);
@@ -106,7 +107,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpPost]
-        [Route("api/Migration/SaveEstadoMovil")]
+        [Route("SaveEstadoMovil")]
         public IHttpActionResult SaveEstadoMovil(EstadoMovil estadoMovil)
         {
             Mensaje mensaje = ServiciosDA.SaveEstadoMovil(estadoMovil);
@@ -115,7 +116,7 @@ namespace WebApiFenosa.Controllers
 
 
         [HttpPost]
-        [Route("api/Migration/SaveNew")]
+        [Route("SaveNew")]
         public IHttpActionResult SaveRegistroMasivoNew()
         {
             try
@@ -150,7 +151,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpPost]
-        [Route("api/Migration/SaveRegistroCorteNew")]
+        [Route("SaveRegistroCorteNew")]
         public IHttpActionResult SaveRegistroCorteNew()
         {
             try
@@ -196,36 +197,17 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpPost]
-        [Route("api/Migration/SaveCliente")]
-        public IHttpActionResult SaveCliente()
+        [Route("SaveCliente")]
+        public IHttpActionResult SaveCliente(GrandesClientes c)
         {
-            try
-            {
-                //string path = HttpContext.Current.Server.MapPath("~/Imagen/");
-                var fotos = HttpContext.Current.Request.Files;
-                var json = HttpContext.Current.Request.Form["model"];
-                GrandesClientes c = JsonConvert.DeserializeObject<GrandesClientes>(json);
-                Mensaje mensaje = MigrationDA.SaveCliente(c);
-                if (mensaje != null)
-                {
-                    for (int i = 0; i < fotos.Count; i++)
-                    {
-                        string fileName = Path.GetFileName(fotos[i].FileName);
-                        fotos[i].SaveAs(path + fileName);
-                    }
-                    return Ok(mensaje);
-                }
-                else
-                    return BadRequest("Error");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+			Mensaje m = MigrationDA.SaveCliente(c);
+			if (m != null)				 
+				return Ok(m);
+			else return BadRequest("Error");			
         }
 
         [HttpPost]
-        [Route("api/Migration/SaveClienteNew")]
+        [Route("SaveClienteNew")]
         public IHttpActionResult SaveClienteNew()
         {
             try
@@ -254,7 +236,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/VerificateFileCliente")]
+        [Route("VerificateFileCliente")]
         public IHttpActionResult VerificateFileCliente(int id)
         {
             try
@@ -274,7 +256,7 @@ namespace WebApiFenosa.Controllers
         }
 
         [HttpGet]
-        [Route("api/Migration/VerificateFileClienteNew")]
+        [Route("VerificateFileClienteNew")]
         public IHttpActionResult VerificateFileCliente(int id, string fecha)
         {
             try
@@ -290,6 +272,27 @@ namespace WebApiFenosa.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+		
+		
+		[HttpPost]
+        [Route("SavePhotos")]
+        public IHttpActionResult SaveInspeccionesPhoto()
+        {
+            try
+            {
+                var files = HttpContext.Current.Request.Files;
+                for (int i = 0; i < files.Count; i++)
+                {
+                    string fileName = Path.GetFileName(files[i].FileName);
+                    files[i].SaveAs(path + fileName);
+                }
+                return Ok("Enviado");
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
     }
